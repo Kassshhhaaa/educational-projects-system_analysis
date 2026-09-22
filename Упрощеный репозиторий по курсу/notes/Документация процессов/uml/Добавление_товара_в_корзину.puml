@@ -1,0 +1,47 @@
+@startuml
+ 
+    actor "Пользователь" as client 
+box "Подразделение: Клиентские сервисы" #LightBlue
+    participant "Front" as front
+    participant "chekout-service" as chek
+    database "Database" as db
+box end
+box "Подразделение: Сервисы доставки" #LightGreen
+    queue "kafka.order-service.order.create" as kafka
+    participant "order-service" as order
+box end
+
+autonumber
+    activate client
+    client -> front: Переходит к созданию заказа
+    activate front
+    front -> chek: POST /api/v1/chekout-service/orders/create
+    activate chek
+    chek -> db: Создание заказа
+    activate db
+    chek <-- db: id созданного заказа
+    deactivate db
+    front <-- chek: 200 ОК С данными для заполнения заказа
+    client <-- front: Введите данные для заказа
+    client -> front: Заполняет необходимые данные для заказа
+    front -> chek: Передача данных по заказу\n POST /api/v1/chekout-service/orders/{id}/update
+    chek -> db: Дополнение данных по id заказа
+    activate db
+    chek <-- db: Данные о заказе обновлены
+    deactivate db
+    chek ->> kafka: Запись события с заказом
+    activate kafka
+    front <-- chek: Заказ успешно создан
+    deactivate chek 
+    client <-- front: Отображение созданного заказа
+    deactivate front
+    deactivate client
+    kafka <- order: Чтение событий с заказом
+    deactivate kafka
+    activate order
+    deactivate order
+
+
+
+    
+@enduml

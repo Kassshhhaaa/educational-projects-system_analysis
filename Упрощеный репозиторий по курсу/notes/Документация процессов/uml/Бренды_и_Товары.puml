@@ -1,0 +1,79 @@
+@startuml
+
+    actor "Пользователь" as client 
+    participant "Front" as front
+    participant  "brand-service" as back1 
+    database "Database" as db 
+    participant "item-service" as back2
+
+
+    autonumber
+
+    ==Просмотр списка брендов==
+
+    activate client
+    client -> front: Открыл список брендов
+    activate front
+    front -> back1: GET-метод для получения списка брендов
+    activate back1 
+    back1 -> db: Запрос на получение\n всех брендов
+    activate db
+    back1 <-- db: Выдача списка брендов
+    deactivate db
+    front <-- back1: 200 OK Со списком брендов
+    client <-- front: Отображение списка брендов
+
+    ==Сортировка списка брендов==
+
+    client -> front: Переходит к сортировке \nбрендов в алфавитном порядке
+    front -> back1: GET-метод с параметрами\n сортировки для получения\n списка брендов
+    back1 -> db: Запрос на список брендов с\n параметрами для сортировки
+    activate db
+    back1 <-- db: Отсортированный список брендов
+    deactivate db
+    front <-- back1: 200 OK Со списком \nотсортированных брендов
+    client <-- front: Список брендов в \nалфавитном порядке
+
+    ==Поиск бренда по названию==
+
+    client -> front: Переходит к поиску \nбренда по названию\n и вводит название бренда
+    front -> back1: GET-метод с указанием \n параметров поиска брендов, \nс подходящим названием
+    back1 -> db: Запрос на список брендов\n с подходящим названием
+
+alt Бренды, подходящие по названию, не найдены
+
+    activate db
+    back1 <-- db: Бренды подходящие \nпо названию не найдены
+    deactivate db
+    front <-- back1: 200 OK Бренды не найдены
+    client<-- front: Уведомление \n"Бренды с таким названием не найдены"
+else  Бренды, подходящие по названию, найдены
+    activate db
+    back1 <-- db: Список подходящих брендов
+    deactivate db
+    front <-- back1: 200 ОК Со списком брендов, \n подходящих по названию
+    client <-- front: Список подходящих \n по названию брендов
+    deactivate back1
+
+end
+
+==Выбор бренда и переход к товару==
+    client -> front: Выбирает бренд и \n переходит к списку товаров
+    activate back2
+    front -> back2: GET-метод для получения\n списка товаров бренда
+
+alt Товары бренда не найдены
+
+    front <-- back2: 200 OK Товары бренда не найдены
+    client <-- front: Уведомление "Товары бренда не найдены"
+
+else Товары бренда найдены
+    
+    front <-- back2: 200 OK Со списком товара бренда
+    deactivate back2
+    client <-- front: Отображение списка товаров \n данного бренда 
+    deactivate front
+    deactivate client
+end 
+
+@enduml 

@@ -1,0 +1,32 @@
+@startuml
+
+left to right direction
+
+Actor Пользователь as User 
+note top of User :Обычный \nпользователь \nвидеохостинга
+
+(Открыть вдиео) as (openVideo)
+(Включить/Постиавить на паузу) as (playPauseVideo)
+(Поставить оценку) as (rateVideo)
+(Открыть настройки видео) as (videoSettings)
+(Поставить "Понравилось") as  (likeVideo)
+(Поставить "Не понравилось") as (dislikeVideo)
+(Настроить качество) as (videoQuality)
+(Настроить скорость) as (videoSpeed)
+(Вкоючить/Выключить субтитры) as (subtitles)
+
+User -- openVideo
+
+    openVideo -.> playPauseVideo :<include>
+    openVideo -.> rateVideo :<include>
+    openVideo -.> videoSettings :<include>
+
+    rateVideo -.> likeVideo :<include>
+    rateVideo -.> dislikeVideo :<include>
+
+    videoSettings -.> videoQuality :<extend>
+    videoSettings -.> videoSpeed :<extend>
+    videoSettings -.> subtitles :<extend>
+
+
+@enduml

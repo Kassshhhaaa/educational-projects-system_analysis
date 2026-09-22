@@ -1,0 +1,387 @@
+openapi: 3.0.3
+info:
+  title: cyberSportBetService
+  description: Service for cyber-sport games' CRUD.
+  version: 1.0.0
+servers:
+  - url: 'https://prod/api/v1/cyberSportBetService'
+    description: production
+  - url: 'https://test/api/v1/cyberSportBetService'
+    description: test
+
+
+paths: 
+  /matches:
+    get:
+      summary: list of matches
+      tags:
+        - admin method
+        - client method
+      parameters:
+        - name: limit
+          required: false
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          required: false
+          in: query
+          schema:
+            type: integer
+        - name: gameTitle
+          required: false
+          in: query
+          schema:
+            $ref: "#/components/schemas/gameTitle"
+        - name: teamId
+          required: false
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: searchText
+          required: false
+          in: query
+          schema:
+            type: string
+      security:
+        - OAuth2: [read:matches]
+      
+      responses:
+        '200':
+          description: success
+          content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    matches:
+                      type: array
+                      items: 
+                        $ref: '#/components/schemas/matchResponse'
+                    gamesQuantity:
+                      type: integer
+                      example: 20
+        '404': 
+          description: clientError
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/responses/NotFound'
+
+    post:
+      summary: create match
+      tags:
+      - admin methods
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/matchRequest'  # Почему тут matchId - если мы отправляем запрос или же это та информация которую мы хотим получить в результате запроса к серверу?
+      parameters:                                         # По какой причине передаётся x-indepotence-key? Потому что нужна авторизация для создания? 
+        - name: x-idempotency-key
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - OAuth2: [create:matches]
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                $ref: '#/components/schemas/matchResponse'
+  
+
+  /matches/{id}:
+    get:
+      summary: get match by id
+      tags:
+      - admin method
+      - client method
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security:
+        - OAuth2: [read:matches]
+      responses:
+        '200':
+          description: Success
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  match:
+                    $ref: '#/components/schemas/matchResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404': 
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    patch:
+      summary: edit match by id
+      tags: 
+      - admin methods
+      parameters:
+        - name: id # Почему автор оригинальной OAS  прописывает id, если $ref он делает на gameResponse, в котором прописан id.
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:  
+        required: true
+        content: 
+          application/json:
+            schema:
+              $ref: '#/components/schemas/matchPatchRequest'
+      security:
+        - OAuth2: [edit:matches]
+
+      responses: 
+        '200':
+          description: Succees
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  match:
+                    $ref: '#/components/schemas/matchResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404': 
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      summary: delete match by id
+      tags: 
+      - admin method
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - OAuth2: [delete:matches]
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleteMatch:
+                    type: string
+                    format: uuid
+                  text:
+                    type: string 
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404': 
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+
+components:
+  schemas:
+    matchRequest: 
+      type: object
+      properties:
+        matchName:
+          type: string
+        gameTitle:
+          $ref: "#/components/schemas/gameTitle"
+        teams:
+          $ref: "#/components/schemas/team"
+        matchDate:
+          type: string
+          format: date-time
+        matchStatus:
+          type: string
+          enum:
+          - not ready
+          - in process
+          - finished
+        relatedEvent:
+          $ref: '#/components/schemas/event'
+      
+      required:
+        - matchName
+        - gameTitle
+        - teams
+        - matchDate
+        - matchStatus
+        - relatedEvent
+
+    matchResponse:
+      type: object
+      properties: 
+        matchId:
+          type: string
+          format: uuid
+        matchName:
+          type: string
+        gameTitle:
+          $ref: "#/components/schemas/gameTitle"
+        teams:
+          $ref: "#/components/schemas/team"
+        matchDate:
+          type: string
+          format: date-time
+        matchStatus:
+          type: string
+          enum:
+          - not ready
+          - in process
+          - finished
+        relatedEvent:
+          $ref: '#/components/schemas/event'
+      
+      required:
+        - matchId
+        - matchName
+        - gameTitle
+        - teams
+        - matchDate
+        - matchStatus
+        - relatedEvent
+
+    matchPatchRequest:
+      type: object
+      properties: 
+        matchId:
+          type: string
+          format: uuid
+        matchName:
+          type: string
+        gameTitle:
+          $ref: "#/components/schemas/gameTitle"
+        teams:
+          $ref: "#/components/schemas/team"
+        matchDate:
+          type: string
+          format: date-time
+        matchStatus:
+          type: string
+          enum:
+          - not ready
+          - in process
+          - finished
+        relatedEvent:
+          $ref: '#/components/schemas/event'
+    
+    gameTitle:
+      type: string
+      enum:
+      - Dota 2
+      - CS 2
+      - Overwatch 2
+
+    event:
+      type: object
+      properties:
+        eventId:
+          type: string
+          format: uuid
+        eventName:
+          type: string
+        score: 
+          type: string
+          pattern: "Team №1 score : Team №2 score"
+        coefficient:
+          type: number
+          example: 1.14
+        eventStatus:
+          type: string
+          enum:
+          - Not Started
+          - In Process
+          - Finished
+      
+      required:
+        - eventId
+        - eventName
+    
+    team:
+      type: object
+      properties:
+        teamId:
+          type: string
+          format: uuid
+        teamName:
+          type: string
+        teamDescription:
+          type: string
+          maxLength: 200
+      required:
+        - teamId
+        - teamName
+
+    error:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+        - code
+        - message
+
+  securitySchemes: 
+    OAuth2:
+      type: oauth2
+      flows:  
+        clientCredentials:
+          tokenUrl: https://auth.example.com/token
+          scopes:
+            read:matches: Read matches
+            create:matches: Create matches
+            delete:matches: Delete matches
+            edit:matches: Edit matches
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+
+
+
+
+
+  

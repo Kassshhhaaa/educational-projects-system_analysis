@@ -1,0 +1,134 @@
+syntax = "proto3";
+
+package OrderService;
+
+option go_package = "./pb";
+
+
+  message AuthData {
+    string userId = 1;
+    string token = 2;
+    string role = 3;
+}
+
+message MetaInfo {
+    string traceId = 1;
+    string timestamp = 2;
+}   
+
+message Order {
+    string orderId = 1;
+    string userId = 2;
+    string IntegrationUserId = 3 [deprecated = true];
+    repeated Item items = 4;
+    float orderPrice = 5;
+    string deliveryType = 6;
+}
+
+message OrderForCreation {
+    repeated Item items = 1;
+    string userId = 2;
+    string IntegrationUserId = 3 [deprecated = true];
+    DeliveryType deliveryType = 4;
+}
+
+message Item {
+    string itemId = 1;
+    string name = 2;
+    string description = 3;
+    float price = 4;
+  
+}
+
+message Error {
+    string code = 1;
+    string description = 2;
+
+}
+
+
+enum DeliveryType {
+  UNKNOWN = 0;
+  EXPRESS = 1;
+  STANDART = 2;
+  PICKUP = 3;
+  
+}
+
+service OrderService {
+  rpc getOrder(GetOrderRequest) returns (GetOrderResponse) {
+    option (google.api.http) = {
+        get: "/api/v1/orderService/orders/getOrder"
+    };
+  }
+  rpc ordersList(OrdersListRequest) returns (OrdersListResponse){
+    option (google.api.http) = {
+        get: "/api/v1/orderService/orders/ordersList"
+    };
+  }
+  rpc createOrder(CreateOrderRequest) returns (CreateOrderResponse){
+    option (google.api.http) = {
+        post: "/api/v1/orderService/orders/createOrder" 
+    };
+  }
+  rpc deleteOrder(DeleteOrderRequest) returns (DeleteOrderResponse){
+    option (google.api.http) = {
+        delete: "/api/v1/orderService/orders/deleteOrder"
+    };
+  }
+}
+
+message GetOrderRequest {
+    AuthData authData = 1;
+    string orderId = 2;
+    string IntegrationUserId = 3 [deprecated = true];
+  
+}
+message GetOrderResponse {
+  Order order = 1;
+  bool status = 2;
+  MetaInfo metaInfo = 3;
+  repeated Error error = 4;
+}
+
+
+message OrdersListRequest {
+    AuthData authData = 1;
+    int32 limit = 2;
+    int32 offset = 3;
+}
+
+message OrdersListResponse {
+    repeated Order orders = 1;
+    bool status = 2;
+    MetaInfo metaInfo = 3;
+    repeated Error error = 4;
+}
+
+message CreateOrderRequest {
+    AuthData authData = 1;
+    OrderForCreation orderData = 2;
+}
+
+message CreateOrderResponse {
+    Order orders = 1;
+    bool status = 2;
+    MetaInfo metaInfo = 3;
+    repeated Error error = 4;
+  
+}
+
+message DeleteOrderRequest {
+    AuthData = 1;
+    string orderId = 2;
+  
+}
+
+message DeleteOrderResponse {
+    string deletedOrderId = 1;
+    bool status = 2;
+    MetaInfo metaInfo = 3;
+    repeated Error error = 4;
+}
+
+

@@ -1,0 +1,167 @@
+openapi: 3.0.3
+info:
+  title: cyberSportBetService
+  description: Vendor transactions service
+  version: 1.0.0
+servers:
+  - url: 'https://prod/api/v1/vendorTransactionsProdService'
+    description: production
+  - url: 'https://test/api/v1/vendorTransactionsTestService'
+    description: test
+paths: 
+  /transaction:
+    post:
+      summary: create transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/transactionRequest'
+    
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/transactionResponse"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+           $ref: '#/components/responses/InternalServerError'
+
+
+components:
+  schemas:
+    transactionRequest:
+      type: object
+      properties:
+        transactionId:
+          type: string
+          format: uuid
+        client:
+          $ref: "#/components/schemas/sender"
+        transactionSumm:
+          $ref: '#/components/schemas/transactionSumm'
+        senderAccount:
+          $ref: "#/components/schemas/senderAccount"
+        reciverAccount:
+          $ref: "#/components/schemas/reciverAccount"
+      required:
+        - clientId
+        - transactionId
+        - transactionSumm
+        - snderAccount
+        - receiverAccount
+
+
+    transactionResponse:
+      type: object
+      properties:
+        transactionId:
+          type: string
+          format: uuid
+        transactionStatus:
+          type: string
+          enum:
+          - Success
+          - Error
+        transactionSumm:
+          $ref: '#/components/schemas/transactionSumm'
+        bankBalance:
+          type: object
+          properties:
+            senderAccountBalance:
+              type: integer
+            currency:
+              type: string
+              pattern: '^[A-Z]{3}$'
+              example: RUB
+
+    account:
+      type: object
+      properties:
+        acoountNumber:
+          type: string
+        accountCurrency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+          example: RUB
+
+    sender:
+      type: object
+      properties:
+        clientId:
+          type: string
+          format: uuid
+
+    reciver:
+      type: object
+      properties:
+        reciverId:
+          type: string
+          format: uuid
+
+    senderAccount:
+      $ref: '#/components/schemas/account'
+
+    reciverAccount:
+      $ref: '#/components/schemas/account'
+
+    transactionSumm:
+          type: object
+          properties:
+            summ: 
+              type: string
+            currency:
+              type: string
+              pattern: '^[A-Z]{3}$'
+              example: RUB
+    error:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+        - code
+        - message
+
+  securitySchemes:
+    mutualTLS:
+      type: mutualTLS
+    
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+    Unauthorized:
+      description: Authorization error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'

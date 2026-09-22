@@ -1,0 +1,107 @@
+syntax = "proto3";
+
+package productManagment;
+
+option go_package = "./pb";
+
+message authData {
+    string userId = 901;
+    string token = 902;
+    string role = 903;
+}
+
+message metaInfo {
+    string traceId = 901;
+    string timestamp = 902;
+}   
+
+message Item {
+    string productId = 1;
+    string name = 2;
+    string description = 3;
+    float price = 4;
+}
+
+message createItem {
+    string name = 1;
+    string description = 2;
+    float price = 3;
+}
+
+
+service products {
+  
+ rpc productsList(productsListRequest) returns (productsListResponse);
+
+ rpc createProduct(createProductRequest) returns (createProductResponse); 
+
+ rpc editProduct(editProductRequest) returns (editProductResponse);
+
+ rpc getProduct(getProductRequest) returns (getProductResponse);
+
+ rpc deleteProduct(deleteProductRequest) returns (deleteProductResponse);
+
+ 
+
+}
+
+///Просмотр списка товаров
+message productsListRequest {
+    authData authData = 1;
+    
+}
+
+message productsListResponse {
+  bool status = 1;
+  repeated Item items = 2;
+  metaInfo metaInfo = 3;
+
+}
+/// Создание товара
+message createProductRequest {
+    authData authData = 1;
+    createItem Item = 2;
+    string IdempotencyKey = 3;
+}
+
+message createProductResponse {
+    Item item = 1;
+    metaInfo metaInfo = 2;
+    bool status = 3;
+}
+/// Редактирование товара
+message editProductRequest {
+    authData authData = 1;
+    Item item = 2;
+}
+
+message editProductResponse {
+    Item editedItem = 1;
+    metaInfo metaInfo = 2;
+    bool status = 3;
+  
+}
+/// Просмотр товара
+message getProductRequest {
+    authData authData = 1;
+    string itemId = 2;
+  
+}
+
+message getProductResponse {
+    Item item = 1;
+    metaInfo metaInfo = 2;
+    bool status = 3;
+  
+}
+/// Удаление товара
+message deleteProductRequest {
+    authData authData = 1;
+    string productId = 2;
+  
+}
+
+message deleteProductResponse {
+  bool status = 1;
+  metaInfo metaInfo = 2;
+}

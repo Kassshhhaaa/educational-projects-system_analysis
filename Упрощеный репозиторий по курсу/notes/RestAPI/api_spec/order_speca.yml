@@ -1,0 +1,248 @@
+openapi: 3.0.0
+info:
+  title: itemManagementService
+  description: some description
+  version: "1.0.0"
+  contact:
+    name: API support
+    url: 'https://www.example.com/support'
+    email: support@mail.com
+  license:
+    name: Apache 2.0
+    url: 'https://www.apache.org/licences/LICENCE-2.0.html'
+servers:
+  - url: 'https://api.example.com/v1'
+    description: Prod
+  - url: 'https://api-stg.example.com/v1'
+    description: Staging server
+
+paths:
+  /order/items:
+    get:
+      tags:
+        - items
+      responses:
+        '200':
+          description: Получить список предметов в заказе
+          content: 
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/items"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '404':
+          $ref: "#/components/responses/NotFound"
+        '500':
+          $ref: "#/components/responses/InternalServerError"
+        
+  /orders:
+    get:
+      summary: List of all orders and function of sort and filter it
+      tags:
+        - order
+      parameters:
+        - name: priceSort
+          in: query
+          description: Сортировка по цене(Asc или Desc)
+          schema:
+            type: string
+            enum:
+              - Asc
+              - Desc
+        - name: minPrice
+          in: query
+          description: фильтрация по минимальной цене
+          schema: 
+            type: integer
+        - name: maxPrice
+          in: query
+          description: фильтрация по максимальной цене
+          schema:
+            type: integer 
+
+      responses:
+        '200':
+          description: Получить список заказов
+          content: 
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/order"
+
+  /order/{id}:
+    get:
+      summary: Viewing of exicting order 
+      tags:
+      - order
+    
+      responses:
+        '200':
+          description: Просмотр определенного заказа
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/order'
+            
+
+
+  /order/create:
+    post:
+      summary: Creates order
+      tags:
+        - orderCreate
+      operationId: createOrder
+      requestBody: 
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/order"
+
+      responses:
+        '200':
+          description: Заказ успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/order'
+
+
+
+
+
+
+
+
+
+
+
+components:
+  schemas:
+    error:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 404
+        message:
+          type: string
+          example: Description of error response
+      required:
+        - code
+        - message
+
+    items:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: uint64
+          example: 131231412123
+        name: 
+          type: string
+        price:
+          type: integer
+        quantity: 
+          type: integer
+      required:
+      - id
+      - name
+      - price
+      - quantity
+    
+    addres:
+      type: object
+      properties:
+        city:
+          type: string
+        street:
+          type: string
+        houseNumber:
+          type: string
+        apartmentNumber:
+          type: string
+      required:
+        - city
+        - street
+        - houseNumber
+
+
+    order:
+      type: object
+      properties: 
+        id:
+          type: integer
+          format: uint64
+        name:
+          type: string
+        items:
+          $ref: "#/components/schemas/items"
+        address:
+          $ref: "#/components/schemas/addres"
+        deliveryType:
+          type: string
+          description: |
+            Варианты доставки:
+            - standard - стандартная доставка
+            - express - экспресс доставка
+            - pickup - самовывоз
+          enum: 
+            - standard
+            - express
+            - pickup
+        deliveryTime:
+          type: string
+          description: Время доставки заказа
+          example: С 18:00 до 21:00
+        totalPrice:
+          type: number 
+      
+      required:
+        - id
+        - name
+        - items
+        - address
+        - deliveryType
+        - deliveryTime
+        - totalPrice
+
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+security:
+  - ApiKeyAuth: []
+tags:
+  - name: Items
+    description: API endpoint related to create and list items
+  - name: Item
+    description: API endpoint for getting item by its id
+externalDocs:
+  description: Find out more about this API
+  url: 'https://example.com/api-documentation'

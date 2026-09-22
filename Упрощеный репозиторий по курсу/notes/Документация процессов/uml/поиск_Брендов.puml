@@ -1,0 +1,24 @@
+@startuml
+
+left to right direction
+
+Actor Пользователь as User 
+note top of User : Пользователь маркетплейса
+
+(Поиск по названию) as (nameSearch)
+(Просмотр брендов списком) as (brandsList)
+(Выбор бренда из списка) as (selectBrand)
+(Сортировка в алфавитном порядке) as (alphabetSorting)
+(Перейти на страницу бренда) as (brandPage)
+
+User -- brandsList 
+
+    brandsList -.> nameSearch :<<include>>
+    brandsList -.> selectBrand :<<include>>
+    nameSearch -.> brandPage : <<include>>
+    selectBrand <.- alphabetSorting : <<extend>>
+    selectBrand -.> brandPage : <<include>>
+    alphabetSorting -.> brandPage :<<include>>
+
+
+@enduml

@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package categoryFiltration;
+
+option go_package = "./pb";
+
+import "google/api/annotations.proto";
+import "google/protobuf/descriptor.proto";
+
+
+    message AuthData {
+    string userId = 1;
+    string token = 2;
+    string role = 3;
+}
+
+message MetaInfo {
+    string traceId = 1;
+    string timestamp = 2;
+}   
+
+message BrandInfo {
+    string brandId = 1;
+    string name = 2;
+    Category category = 3;
+    repeated MediaInfo mediaInfo = 4;
+}
+
+message MediaInfo {
+    string url = 1;
+    int32 order = 2;
+  
+}
+
+enum Category {
+    UNKNOWN = 0;  
+    ACCESSORIES = 1;
+    CLOTHES = 2;
+    FOOTWEAR = 3;
+}
+
+service BrandService {
+    rpc GetBrandsList(BrandsListRequest) returns (BrandsListResponse) {
+        option (google.api.http) = {
+            get: "v1/brandServices/brands/list"
+        };
+    }
+
+}
+
+message BrandsListRequest {
+    AuthData authData = 1;
+    optional Category category = 2;
+    int32 limit = 3; //Сколько записей берём
+    int32 offset = 4;// откуда начинаем
+}
+
+message BrandsListResponse {
+    bool status = 1;
+    repeated BrandInfo brands = 2;
+    MetaInfo metaInfo = 3;
+    int32 total_count =4;//общее кол-во для подходящее под фильтрацию 
+    
+} 
+
+
+
+
